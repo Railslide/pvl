@@ -1,15 +1,22 @@
 package main
 
 import (
+        "encoding/json"
 	"log"
 	"os"
 	"path"
 )
 
-func locateVenv() string {
+type PyrightConfig struct {
+  VenvName string
+  VenvPath string
+}
+
+func locateVenv() (venvName, venvPath string) {
   envVar, hasValue := os.LookupEnv("VIRTUAL_ENV")
   if hasValue {
-    return envVar
+    venvPath, venvName := path.Split(envVar)
+    return venvName, venvPath
   }
 
   cwd, err := os.Getwd()
@@ -17,16 +24,26 @@ func locateVenv() string {
     log.Fatal("Cannot get path of current working directory")
   }
 
-  localVenvDir := path.Join(cwd, ".venv")
+  venvName = ".venv"
+  localVenvDir := path.Join(cwd, venvName)
   if _, err := os.Stat(localVenvDir); err != nil {
     log.Fatal("Cannot find a virtualenv for the project")
   }
 
-  return localVenvDir
+  return venvName, cwd
 }
 
-func createConfigFile(venvPath string) {
+func createConfigFile(venvName, venvPath string) {
+  jsonBody := PyrightConfig{
+    VenvName: venvName,
+    VenvPath: venvPath,
+  }
 
+  fileContent, err := json.MarshalIndent(jsonBody, "", "    ")
+  if err != nil {
+    log.Fatal("CHANGE ME")
+  }
+  println(string(fileContent))
 }
 
 func main() {
@@ -45,8 +62,10 @@ func main() {
     }
   }
 
-  venvPath := locateVenv()
-  println(venvPath)
+  venvName, venvPath := locateVenv()
+  println(venvPath, venvName)
+
+  createConfigFile(venvName, venvPath)
 
 }
 
