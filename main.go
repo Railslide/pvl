@@ -9,15 +9,15 @@ import (
 )
 
 type PyrightConfig struct {
-	VenvName string
-	VenvPath string
+	VenvName string `json:"venv"`
+	VenvPath string `json:"venvPath"`
 }
 
 func locateVenv() (venvName, venvPath string, err error) {
 	envVar, hasValue := os.LookupEnv("VIRTUAL_ENV")
 	if hasValue {
 		venvPath, venvName := path.Split(envVar)
-		return venvName, venvPath, nil
+		return venvName, path.Clean(venvPath), nil
 	}
 
 	cwd, err := os.Getwd()
