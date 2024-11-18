@@ -9,8 +9,8 @@ import (
 )
 
 type PyrightConfig struct {
-	VenvName string
-	VenvPath string
+	VenvName string `json:"venv"`
+	VenvPath string `json:"venvPath"`
 }
 
 func locateVenv() (venvName, venvPath string, err error) {
