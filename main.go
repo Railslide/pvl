@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"io/fs"
 	"log"
 	"os"
 	"path"
@@ -11,12 +12,16 @@ import (
 type fileSystem interface {
 	Getwd() (string, error)
 	Stat(name string) (os.FileInfo, error)
+	WriteFile(name string, data []byte, perm fs.FileMode) error
 }
 
 type osFS struct{}
 
 func (osFS) Getwd() (string, error)                { return os.Getwd() }
 func (osFS) Stat(name string) (os.FileInfo, error) { return os.Stat(name) }
+func (osFS) WriteFile(name string, data []byte, perm fs.FileMode) error {
+	return os.WriteFile(name, data, perm)
+}
 
 type PyrightConfig struct {
 	VenvName string `json:"venv"`
@@ -44,7 +49,7 @@ func locateVenv(fs fileSystem) (venvName, venvPath string, err error) {
 	return venvName, cwd, nil
 }
 
-func createConfigFile(venvName, venvPath string) error {
+func createConfigFile(fs fileSystem, venvName, venvPath string) error {
 	filename := "pyrightconfig.json"
 	pyrightConfig := PyrightConfig{
 		VenvName: venvName,
@@ -56,11 +61,11 @@ func createConfigFile(venvName, venvPath string) error {
 		return errors.New("Error while creating file content")
 	}
 
-	if _, err := os.Stat(filename); err == nil {
+	if _, err := fs.Stat(filename); !errors.Is(err, os.ErrNotExist) {
 		return errors.New("Config file already exists")
 	}
 
-	err = os.WriteFile("pyrightconfig.json", fileContent, 0644)
+	err = fs.WriteFile("pyrightconfig.json", fileContent, 0644)
 	if err != nil {
 		return errors.New("Error while writing file")
 	}
@@ -89,7 +94,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = createConfigFile(venvName, venvPath)
+	err = createConfigFile(fs, venvName, venvPath)
 	if err != nil {
 		log.Fatal(err)
 	}

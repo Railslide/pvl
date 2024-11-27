@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/fs"
 	"os"
 	"testing"
 )
@@ -11,8 +12,9 @@ type mockedFile struct {
 
 type mockedFS struct{}
 
-func (mockedFS) Getwd() (string, error)                { return "test_directory", nil }
-func (mockedFS) Stat(name string) (os.FileInfo, error) { return mockedFile{}, nil }
+func (mockedFS) Getwd() (string, error)                                     { return "test_directory", nil }
+func (mockedFS) Stat(name string) (os.FileInfo, error)                      { return mockedFile{}, nil }
+func (mockedFS) WriteFile(name string, data []byte, perm fs.FileMode) error { return os.ErrNotExist }
 
 func TestLocateVenv(t *testing.T) {
 	fs := mockedFS{}
@@ -44,5 +46,13 @@ func TestLocateVenvEnvVariable(t *testing.T) {
 	}
 	if dir != "test_path" {
 		t.Fatalf("Expected dir path is `test_path`, but got `%s`", dir)
+	}
+}
+
+func TestCreateConfigFileAlreadyExistingConfig(t *testing.T) {
+	fs := mockedFS{}
+	err := createConfigFile(fs, "test_venv", "test_path")
+	if err == nil || err.Error() != "Config file already exists" {
+		t.Fatal("Test did not throw an error for already existing config file")
 	}
 }
