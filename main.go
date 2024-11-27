@@ -8,26 +8,36 @@ import (
 	"path"
 )
 
+type fileSystem interface {
+	Getwd() (string, error)
+	Stat(name string) (os.FileInfo, error)
+}
+
+type osFS struct{}
+
+func (osFS) Getwd() (string, error)                { return os.Getwd() }
+func (osFS) Stat(name string) (os.FileInfo, error) { return os.Stat(name) }
+
 type PyrightConfig struct {
 	VenvName string `json:"venv"`
 	VenvPath string `json:"venvPath"`
 }
 
-func locateVenv() (venvName, venvPath string, err error) {
+func locateVenv(fs fileSystem) (venvName, venvPath string, err error) {
 	envVar, hasValue := os.LookupEnv("VIRTUAL_ENV")
 	if hasValue {
 		venvPath, venvName := path.Split(envVar)
 		return venvName, path.Clean(venvPath), nil
 	}
 
-	cwd, err := os.Getwd()
+	cwd, err := fs.Getwd()
 	if err != nil {
 		return "", "", errors.New("Cannot get path of current working directory")
 	}
 
 	venvName = ".venv"
 	localVenvDir := path.Join(cwd, venvName)
-	if _, err := os.Stat(localVenvDir); err != nil {
+	if _, err := fs.Stat(localVenvDir); err != nil {
 		return "", "", errors.New("Cannot find a virtualenv for the project")
 	}
 
@@ -73,7 +83,8 @@ func main() {
 		}
 	}
 
-	venvName, venvPath, err := locateVenv()
+	fs := osFS{}
+	venvName, venvPath, err := locateVenv(fs)
 	if err != nil {
 		log.Fatal(err)
 	}
