@@ -18,41 +18,59 @@ func (mockedFS) WriteFile(name string, data []byte, perm fs.FileMode) error { re
 
 func TestLocateVenv(t *testing.T) {
 	fs := mockedFS{}
-	venv, dir, err := locateVenv(fs)
 
-	if err != nil {
-		t.Fatalf("Test encountered an error: %v", err)
-	}
-	if venv != ".venv" {
-		t.Fatalf("Expected virtualenv name is `.venv`, but got `%s`", venv)
-	}
-	if dir != "test_directory" {
-		t.Fatalf("Expected dir path is `test_directory`, but got `%s`", dir)
+	tests := []struct {
+		name        string
+		envVarName  string
+		envVarValue string
+		wantVenv    string
+		wantDir     string
+	}{
+		{
+			name:     ".venv folder in current working directory",
+			wantVenv: ".venv",
+			wantDir:  "test_directory",
+		},
+		{
+			name:        "VIRTUAL_ENV env variable is set",
+			envVarName:  "VIRTUAL_ENV",
+			envVarValue: "test_path/test_venv",
+			wantVenv:    "test_venv",
+			wantDir:     "test_path",
+		},
 	}
 
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.envVarName != "" {
+				os.Setenv(tt.envVarName, tt.envVarValue)
+			}
+
+			venv, dir, err := locateVenv(fs)
+
+			if err != nil {
+				t.Errorf("got %v, expected nil", err)
+			}
+
+			if venv != tt.wantVenv {
+				t.Errorf("got: %s, want: %s", venv, tt.wantVenv)
+			}
+
+			if dir != tt.wantDir {
+				t.Errorf("got: %s, want: %s", dir, tt.wantDir)
+			}
+
+		})
+	}
 }
 
-func TestLocateVenvEnvVariable(t *testing.T) {
 
+func TestCreateConfigFileAlreadyExisting(t *testing.T) {
 	fs := mockedFS{}
-	os.Setenv("VIRTUAL_ENV", "test_path/test_venv")
-	venv, dir, err := locateVenv(fs)
 
-	if err != nil {
-		t.Fatalf("Test encountered an error: %v", err)
-	}
-	if venv != "test_venv" {
-		t.Fatalf("Expected virtualenv name is `test_venv`, but got `%s`", venv)
-	}
-	if dir != "test_path" {
-		t.Fatalf("Expected dir path is `test_path`, but got `%s`", dir)
-	}
-}
+        err := createConfigFile(fs, "test_venv", "test_path")
 
-func TestCreateConfigFileAlreadyExistingConfig(t *testing.T) {
-	fs := mockedFS{}
-	err := createConfigFile(fs, "test_venv", "test_path")
 	if err == nil || err.Error() != "Config file already exists" {
-		t.Fatal("Test did not throw an error for already existing config file")
+		t.Errorf("Test did not throw an error for already existing config file")
 	}
 }
