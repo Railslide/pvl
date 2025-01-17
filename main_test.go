@@ -27,16 +27,16 @@ func TestLocateVenv(t *testing.T) {
 		wantDir     string
 	}{
 		{
-			name:     ".venv folder in current working directory",
-			wantVenv: ".venv",
-			wantDir:  "test_directory",
-		},
-		{
 			name:        "VIRTUAL_ENV env variable is set",
 			envVarName:  "VIRTUAL_ENV",
 			envVarValue: "test_path/test_venv",
 			wantVenv:    "test_venv",
 			wantDir:     "test_path",
+		},
+		{
+			name:     ".venv folder in current working directory",
+			wantVenv: ".venv",
+			wantDir:  "test_directory",
 		},
 	}
 
@@ -44,6 +44,8 @@ func TestLocateVenv(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.envVarName != "" {
 				os.Setenv(tt.envVarName, tt.envVarValue)
+
+                                t.Cleanup(func() { os.Unsetenv(tt.envVarName)})
 			}
 
 			venv, dir, err := locateVenv(fs)
