@@ -29,8 +29,8 @@ type PyrightConfig struct {
 }
 
 func locateVenv(fs fileSystem) (venvName, venvPath string, err error) {
-	envVar, hasValue := os.LookupEnv("VIRTUAL_ENV")
-	if hasValue {
+	envVar, ok := os.LookupEnv("VIRTUAL_ENV")
+	if ok {
 		venvPath, venvName := path.Split(envVar)
 		return venvName, path.Clean(venvPath), nil
 	}
@@ -51,12 +51,12 @@ func locateVenv(fs fileSystem) (venvName, venvPath string, err error) {
 
 func createConfigFile(fs fileSystem, venvName, venvPath string) error {
 	filename := "pyrightconfig.json"
-	pyrightConfig := PyrightConfig{
+	config := PyrightConfig{
 		VenvName: venvName,
 		VenvPath: venvPath,
 	}
 
-	fileContent, err := json.MarshalIndent(pyrightConfig, "", "    ")
+	fileContent, err := json.MarshalIndent(config, "", "\t")
 	if err != nil {
 		return errors.New("Error while creating file content")
 	}
@@ -65,7 +65,9 @@ func createConfigFile(fs fileSystem, venvName, venvPath string) error {
 		return errors.New("Config file already exists")
 	}
 
-	err = fs.WriteFile("pyrightconfig.json", fileContent, 0644)
+        fileContent = append(fileContent, '\n')
+
+	err = fs.WriteFile(filename, fileContent, 0644)
 	if err != nil {
 		return errors.New("Error while writing file")
 	}
