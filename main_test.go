@@ -21,9 +21,8 @@ func (mockedFS) Stat(name string) (os.FileInfo, error) {
 }
 
 func (mockedFS) WriteFile(name string, data []byte, perm fs.FileMode) error {
-  return os.ErrNotExist
+	return os.ErrNotExist
 }
-
 
 func TestExtractVent(t *testing.T) {
 	fs := mockedFS{}
@@ -124,15 +123,5 @@ func TestLocateVenv(t *testing.T) {
 			}
 
 		})
-	}
-}
-
-func TestCreateConfigFileAlreadyExisting(t *testing.T) {
-	fs := mockedFS{}
-
-	err := createConfigFile(fs, "test_venv", "test_path")
-
-	if err == nil || err.Error() != "Config file already exists" {
-		t.Errorf("Test did not throw an error for already existing config file")
 	}
 }

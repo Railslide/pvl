@@ -73,8 +73,7 @@ func locateVenv(fs fileSystem, userPath string) (venvName, venvPath string, err 
 	return venvName, venvPath, nil
 }
 
-func createConfigFile(fs fileSystem, venvName, venvPath string) error {
-	filename := "pyrightconfig.json"
+func createConfigFile(fs fileSystem, venvName, venvPath, filename string) error {
 	config := PyrightConfig{
 		VenvName: venvName,
 		VenvPath: venvPath,
@@ -83,10 +82,6 @@ func createConfigFile(fs fileSystem, venvName, venvPath string) error {
 	fileContent, err := json.MarshalIndent(config, "", "\t")
 	if err != nil {
 		return errors.New("error while creating file content")
-	}
-
-	if _, err := fs.Stat(filename); !errors.Is(err, os.ErrNotExist) {
-		return errors.New("config file already exists")
 	}
 
 	fileContent = append(fileContent, '\n')
@@ -99,8 +94,8 @@ func createConfigFile(fs fileSystem, venvName, venvPath string) error {
 }
 
 func main() {
-        log.SetFlags(0)
-        log.SetPrefix("pvl: ")
+	log.SetFlags(0)
+	log.SetPrefix("pvl: ")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of pvl:\n")
@@ -121,12 +116,18 @@ func main() {
 	}
 
 	fs := osFS{}
+	destination := "pyrightconfig.json"
+
+	if _, err := fs.Stat(destination); !errors.Is(err, os.ErrNotExist) {
+		log.Fatal("config file already exists")
+	}
+
 	venvName, venvPath, err := locateVenv(fs, *userPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = createConfigFile(fs, venvName, venvPath)
+	err = createConfigFile(fs, venvName, venvPath, destination)
 	if err != nil {
 		log.Fatal(err)
 	}
