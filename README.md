@@ -10,12 +10,22 @@ You can install pvl with go install
 go install github.com/railslide/pvl@latest
 ```
 
+## Usage
+```
+$ pvl --help
+
+Usage of pvl:
+	pvl
+	pvl --path [PATH]
+Flags:
+  -path string
+       Custom path to the virtualenv (optional)
+```
+
 ## Virtualenv detection priority
 
-pvl checks for virtualenv environments according to the following order
+pvl checks for virtualenv environments according to the following order:
 
+- Path passed as a command line flag
 - Currently active virtualenv
 - `.venv` folder in current working directory
-
-In other words, if pvl is running from inside a virtualenv it will pick the active virtualenv
-independently on whether there is a `.venv` folder or not.
