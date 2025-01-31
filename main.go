@@ -99,11 +99,21 @@ func createConfigFile(fs fileSystem, venvName, venvPath string) error {
 }
 
 func main() {
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of pvl:\n")
+		fmt.Fprintf(os.Stderr, "\tpvl\n")
+		fmt.Fprintf(os.Stderr, "\tpvl --path [PATH]\n")
+		fmt.Fprintf(os.Stderr, "Flags:\n")
+		flag.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "\n")
+	}
+
 	userPath := flag.String("path", "", "Custom path to the virtualenv (optional)")
 	flag.Parse()
 
 	if len(flag.Args()) > 0 {
-		println("Unrecognized command")
+		fmt.Fprintf(os.Stderr, "error: unrecognized command\n\n")
+		flag.Usage()
 		os.Exit(1)
 	}
 
