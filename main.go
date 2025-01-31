@@ -45,22 +45,22 @@ func extractVenv(fs fileSystem, venv string) (venvName, venvPath string, err err
 	return venv, cwd, nil
 }
 
-func locateVenv(fs fileSystem, venvDir string) (venvName, venvPath string, err error) {
-	var target string
+func locateVenv(fs fileSystem, userPath string) (venvName, venvPath string, err error) {
+	var targetPath string
 
-	if venvDir == "" {
+	if userPath == "" {
 		envVar, ok := os.LookupEnv("VIRTUAL_ENV")
 		if !ok {
-			target = ".venv"
+			targetPath = ".venv"
 		} else {
-			target = envVar
+			targetPath = envVar
 		}
 
 	} else {
-		target = venvDir
+		targetPath = userPath
 	}
 
-	venvName, venvPath, err = extractVenv(fs, target)
+	venvName, venvPath, err = extractVenv(fs, targetPath)
 	if err != nil {
 		return "", "", err
 	}
