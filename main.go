@@ -67,7 +67,7 @@ func locateVenv(fs fileSystem, userPath string) (venvName, venvPath string, err 
 
 	venvFullPath := path.Join(venvPath, venvName)
 	if _, err := fs.Stat(venvFullPath); err != nil {
-		return "", "", fmt.Errorf("Cannot find a virtualenv at %s", venvFullPath)
+		return "", "", fmt.Errorf("cannot find a virtualenv at %s", venvFullPath)
 	}
 
 	return venvName, venvPath, nil
@@ -82,23 +82,26 @@ func createConfigFile(fs fileSystem, venvName, venvPath string) error {
 
 	fileContent, err := json.MarshalIndent(config, "", "\t")
 	if err != nil {
-		return errors.New("Error while creating file content")
+		return errors.New("error while creating file content")
 	}
 
 	if _, err := fs.Stat(filename); !errors.Is(err, os.ErrNotExist) {
-		return errors.New("Config file already exists")
+		return errors.New("config file already exists")
 	}
 
 	fileContent = append(fileContent, '\n')
 
 	err = fs.WriteFile(filename, fileContent, 0644)
 	if err != nil {
-		return errors.New("Error while writing file")
+		return errors.New("error while writing file")
 	}
 	return nil
 }
 
 func main() {
+        log.SetFlags(0)
+        log.SetPrefix("pvl: ")
+
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of pvl:\n")
 		fmt.Fprintf(os.Stderr, "\tpvl\n")

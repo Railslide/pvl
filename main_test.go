@@ -12,9 +12,18 @@ type mockedFile struct {
 
 type mockedFS struct{}
 
-func (mockedFS) Getwd() (string, error)                                     { return "test_directory", nil }
-func (mockedFS) Stat(name string) (os.FileInfo, error)                      { return mockedFile{}, nil }
-func (mockedFS) WriteFile(name string, data []byte, perm fs.FileMode) error { return os.ErrNotExist }
+func (mockedFS) Getwd() (string, error) {
+	return "test_directory", nil
+}
+
+func (mockedFS) Stat(name string) (os.FileInfo, error) {
+	return mockedFile{}, nil
+}
+
+func (mockedFS) WriteFile(name string, data []byte, perm fs.FileMode) error {
+  return os.ErrNotExist
+}
+
 
 func TestExtractVent(t *testing.T) {
 	fs := mockedFS{}
