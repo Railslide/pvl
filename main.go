@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io/fs"
 	"log"
@@ -98,23 +99,16 @@ func createConfigFile(fs fileSystem, venvName, venvPath string) error {
 }
 
 func main() {
+	userPath := flag.String("path", "", "Custom path to the virtualenv (optional)")
+	flag.Parse()
 
-	if len(os.Args) > 1 {
-		if os.Args[1] == "--help" {
-			println(`Pvl, the Pyright Virtualenv Locator\n\n"
-				It locates the virtualenv and adds the
-				path to it to pyrightconfig.json`,
-			)
-			os.Exit(0)
-		} else {
-			println("Unrecognized command")
-			os.Exit(1)
-		}
+	if len(flag.Args()) > 0 {
+		println("Unrecognized command")
+		os.Exit(1)
 	}
 
 	fs := osFS{}
-	venvDir := "foo"
-	venvName, venvPath, err := locateVenv(fs, venvDir)
+	venvName, venvPath, err := locateVenv(fs, *userPath)
 	if err != nil {
 		log.Fatal(err)
 	}
